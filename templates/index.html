@@ -1,31 +1,12 @@
-<!doctype html>
-<html lang="pt-BR">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>FC27 Clubs Hub</title><link rel="stylesheet" href="/static/style.css">
-</head>
-<body>
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FC27 Clubs Hub</title><link rel="stylesheet" href="/static/style.css"></head><body>
 <div id="toast"></div>
-<header><div class="brand"><div class="logo">FC</div><div><b>FC27 CLUBS HUB</b><small>Stats • Histórico • Rankings</small></div></div>
-<div class="search"><input id="clubInput" placeholder="Digite o nome do clube..."><button id="updateBtn">ATUALIZAR CLUBE</button></div></header>
-<div class="layout">
-<aside><h3>CLUBES SALVOS</h3><div id="clubList"></div></aside>
-<main>
-<section id="empty" class="empty"><h1>Seu hub de Pro Clubs</h1><p>Digite um clube acima e clique em <b>ATUALIZAR CLUBE</b>. O histórico será acumulado automaticamente.</p></section>
-<section id="content" class="hidden">
-<div class="hero"><div><span class="eyebrow">CLUBE</span><h1 id="clubName"></h1><p id="clubMeta"></p></div>
-<div class="hero-actions"><button class="ghost" id="refreshBtn">↻ Atualizar</button><button class="ghost" id="exportBtn">↓ Excel</button></div></div>
-<div id="kpis" class="kpis"></div>
+<section id="loginScreen" class="login-screen"><div class="login-card"><div class="logo big">FC</div><h1>FC27 CLUBS HUB</h1><p>Entre para acessar seus clubes.</p><input id="loginUser" placeholder="Usuário" autocomplete="username"><input id="loginPass" type="password" placeholder="Senha" autocomplete="current-password"><button id="loginBtn">ENTRAR</button><small>As contas são criadas pelo administrador.</small></div></section>
+<div id="appShell" class="hidden"><header><div class="brand"><div class="logo">FC</div><div><b>FC27 CLUBS HUB</b><small>Stats • Histórico • Rankings</small></div></div><div class="search"><input id="clubInput" placeholder="Digite o nome do clube..."><button id="updateBtn">ADICIONAR / ATUALIZAR</button></div><div class="account"><span id="who"></span><button class="ghost hidden" id="adminBtn">Usuários</button><button class="ghost" id="logoutBtn">Sair</button></div></header>
+<div class="layout"><aside><h3>MEUS CLUBES</h3><div id="clubList"></div></aside><main><section id="empty" class="empty"><h1>Seu hub de Pro Clubs</h1><p>Digite um clube acima e clique em <b>ADICIONAR / ATUALIZAR</b>.</p></section><section id="content" class="hidden">
+<div class="hero"><div><span class="eyebrow">CLUBE</span><h1 id="clubName"></h1><p id="clubMeta"></p></div><div class="hero-actions"><button class="ghost" id="refreshBtn">↻ Atualizar</button><button class="ghost" id="exportBtn">↓ Excel</button></div></div><div id="kpis" class="kpis"></div>
 <nav class="tabs"><button class="active" data-tab="dashboard">Dashboard</button><button data-tab="players">Jogadores</button><button data-tab="matches">Partidas</button><button data-tab="rankings">Rankings</button></nav>
-<div id="dashboard" class="tab active">
-<div class="grid2"><div class="panel"><div class="panel-title">FORMA RECENTE</div><div id="form"></div></div>
-<div class="panel"><div class="panel-title">TOP JOGADORES</div><div id="topPlayers"></div></div></div>
-<div class="panel"><div class="panel-title">ÚLTIMAS PARTIDAS</div><div id="recentMatches"></div></div>
-</div>
+<div id="dashboard" class="tab active"><div class="grid2"><div class="panel"><div class="panel-title">FORMA RECENTE</div><div id="form"></div></div><div class="panel"><div class="panel-title">TOP JOGADORES</div><div id="topPlayers"></div></div></div><div class="panel"><div class="panel-title">ÚLTIMAS PARTIDAS</div><div id="recentMatches"></div></div></div>
 <div id="players" class="tab"><div class="panel"><div class="panel-title">ELENCO</div><div class="tablewrap"><table><thead><tr><th>Jogador</th><th>Pos.</th><th>OVR</th><th>Jogos</th><th>Gols</th><th>AST</th><th>Nota</th><th>Passes</th><th>Desarmes</th></tr></thead><tbody id="playersBody"></tbody></table></div></div></div>
 <div id="matches" class="tab"><div class="filters"><select id="matchLimit"><option>10</option><option>20</option><option selected>50</option><option>100</option><option value="1000">Todas</option></select><select id="matchType"><option value="all">Todos os tipos</option><option value="leagueMatch">Liga</option><option value="friendlyMatch">Amistoso</option><option value="playoffMatch">Playoff</option></select></div><div id="matchesList"></div></div>
-<div id="rankings" class="tab"><div class="filters"><select id="rankingLast"><option value="0">Histórico completo</option><option value="10">Últimas 10</option><option value="20">Últimas 20</option><option value="50">Últimas 50</option></select></div><div class="panel"><div class="tablewrap"><table><thead><tr><th>#</th><th>Jogador</th><th>Jogos</th><th>Gols</th><th>AST</th><th>Nota</th><th>MOTM</th></tr></thead><tbody id="rankBody"></tbody></table></div></div></div>
-</section>
-</main></div>
-<div id="modal" class="modal hidden"><div class="modalbox"><button class="close" onclick="closeModal()">×</button><div id="modalContent"></div></div></div>
-<script src="/static/app.js"></script></body></html>
+<div id="rankings" class="tab"><div class="filters"><select id="rankingLast"><option value="0">Histórico completo</option><option value="10">Últimas 10</option><option value="20">Últimas 20</option><option value="50">Últimas 50</option></select></div><div class="panel"><div class="tablewrap"><table><thead><tr><th>#</th><th>Jogador</th><th>Jogos</th><th>Gols</th><th>AST</th><th>Nota</th><th>MOTM</th></tr></thead><tbody id="rankBody"></tbody></table></div></div></div></section></main></div></div>
+<div id="modal" class="modal hidden"><div class="modalbox"><button class="close" onclick="closeModal()">×</button><div id="modalContent"></div></div></div><script src="/static/app.js"></script></body></html>
