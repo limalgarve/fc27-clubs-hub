@@ -1,5 +1,5 @@
 
-let currentClub=null, clubData=null;
+let currentClub=null, clubData=null, me=null;
 const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
 function toast(t){let x=$("#toast");x.textContent=t;x.style.display="block";setTimeout(()=>x.style.display="none",3500)}
 function fmt(n,d=0){if(n===null||n===undefined||n==="")return "—";return Number(n).toLocaleString("pt-BR",{maximumFractionDigits:d})}
@@ -7,7 +7,14 @@ function dateBR(s){if(!s)return "";let d=new Date(s.replace(" ","T"));return isN
 function typeLabel(t){return {leagueMatch:"Liga",friendlyMatch:"Amistoso",playoffMatch:"Playoff"}[t]||t}
 function resultLabel(r){return r==="win"?"VITÓRIA":r==="draw"?"EMPATE":"DERROTA"}
 function resultClass(r){return r==="win"?"win":r==="draw"?"draw":"loss"}
-async function api(url,opt){let r=await fetch(url,opt);let j;try{j=await r.json()}catch{j={detail:"Resposta inválida"}}if(!r.ok)throw Error(j.detail||"Erro");return j}
+async function api(url,opt){let r=await fetch(url,opt);let j;try{j=await r.json()}catch{j={detail:"Resposta inválida"}}if(!r.ok){if(r.status===401&&url!=="/api/login")showLogin();throw Error(j.detail||"Erro")}return j}
+function showLogin(){$("#loginScreen").classList.remove("hidden");$("#appShell").classList.add("hidden")}
+function showApp(){$("#loginScreen").classList.add("hidden");$("#appShell").classList.remove("hidden")}
+async function boot(){try{let r=await api("/api/me");if(!r.authenticated)return showLogin();me=r.user;showApp();$("#who").textContent=me.username;$("#adminBtn").classList.toggle("hidden",!me.is_admin);await loadClubs()}catch(e){showLogin()}}
+async function login(){try{let r=await api("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:$("#loginUser").value.trim(),password:$("#loginPass").value})});me=r;showApp();$("#who").textContent=r.username;$("#adminBtn").classList.toggle("hidden",!r.is_admin);await loadClubs()}catch(e){toast(e.message)}}
+async function logout(){await api("/api/logout",{method:"POST"});location.reload()}
+async function adminUsers(){let users=await api("/api/admin/users");$("#modalContent").innerHTML='<span class="eyebrow">ADMINISTRAÇÃO</span><h1>Usuários</h1><div class="user-create"><input id="newUser" placeholder="Novo usuário"><input id="newPass" type="password" placeholder="Senha inicial"><button onclick="createUser()">CRIAR USUÁRIO</button></div><div class="panel">'+users.map(u=>'<div class="userrow"><b>'+u.username+'</b><span>'+(u.is_admin?"Administrador":"Integrante")+' • '+(u.active?"Ativo":"Inativo")+'</span></div>').join("")+'</div>';$("#modal").classList.remove("hidden")}
+async function createUser(){try{await api("/api/admin/users",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:$("#newUser").value,password:$("#newPass").value})});toast("Usuário criado.");adminUsers()}catch(e){toast(e.message)}}
 async function loadClubs(){
  let clubs=await api("/api/clubs"); let box=$("#clubList");box.innerHTML="";
  clubs.forEach(c=>{let d=document.createElement("div");d.className="clubitem"+(currentClub===c.club_id?" active":"");d.innerHTML=`<b>${c.name}</b><small>${c.total_matches||0} partidas • ID ${c.club_id}</small>`;d.onclick=()=>openClub(c.club_id);box.appendChild(d)})
@@ -15,22 +22,8 @@ async function loadClubs(){
 async function doUpdate(){
  let q=$("#clubInput").value.trim();if(!q)return toast("Digite o nome do clube.");
  $("#updateBtn").disabled=true;$("#updateBtn").textContent="ATUALIZANDO...";
- try{
- let token=localStorage.getItem("fc27_admin_token")||"";
- let headers={};
- if(token)headers["X-Admin-Token"]=token;
- let r;
- try{r=await api("/api/update?q="+encodeURIComponent(q),{method:"POST",headers})}
- catch(e){
-   if(e.message.includes("Senha de atualização necessária")||e.message.includes("Senha de atualização incorreta")){
-     let pwd=prompt("Digite a senha para atualizar os dados do clube:");
-     if(!pwd)throw e;
-     localStorage.setItem("fc27_admin_token",pwd);
-     r=await api("/api/update?q="+encodeURIComponent(q),{method:"POST",headers:{"X-Admin-Token":pwd}});
-   }else throw e;
- }
- toast(`${r.name}: ${r.new_matches} nova(s) partida(s). Total ${r.total_matches}.`);await loadClubs();await openClub(r.club_id)}
- catch(e){toast("Erro: "+e.message)}finally{$("#updateBtn").disabled=false;$("#updateBtn").textContent="ATUALIZAR CLUBE"}
+ try{let r=await api("/api/update?q="+encodeURIComponent(q),{method:"POST"});toast(`${r.name}: ${r.new_matches} nova(s) partida(s). Total ${r.total_matches}.`);await boot();await openClub(r.club_id)}
+ catch(e){toast("Erro: "+e.message)}finally{$("#updateBtn").disabled=false;$("#updateBtn").textContent="ADICIONAR / ATUALIZAR"}
 }
 async function openClub(id){
  currentClub=String(id);clubData=await api(`/api/club/${id}?limit=20`);$("#empty").classList.add("hidden");$("#content").classList.remove("hidden");
@@ -61,6 +54,6 @@ async function openPlayer(enc){let name=decodeURIComponent(enc);let a=await api(
  $("#modalContent").innerHTML=`<span class="eyebrow">JOGADOR</span><h1>${name}</h1><div class="kpis"><div class="kpi"><span>Jogos</span><b>${games}</b></div><div class="kpi"><span>Gols</span><b>${goals}</b></div><div class="kpi"><span>Assistências</span><b>${ast}</b></div><div class="kpi"><span>Nota média</span><b>${fmt(avg,2)}</b></div></div><div class="panel"><div class="panel-title">PARTIDAS RECENTES</div><div class="tablewrap"><table><thead><tr><th>Data</th><th>Adversário</th><th>Nota</th><th>Gols</th><th>AST</th><th>Resultado</th></tr></thead><tbody>${a.slice(0,30).map(x=>`<tr><td>${dateBR(x.timestamp)}</td><td>${x.opponent_name}</td><td>${fmt(x.rating,1)}</td><td>${fmt(x.goals)}</td><td>${fmt(x.assists)}</td><td>${resultLabel(x.result)}</td></tr>`).join("")}</tbody></table></div></div>`;$("#modal").classList.remove("hidden")}
 function closeModal(){$("#modal").classList.add("hidden")}
 $$(".tabs button").forEach(b=>b.onclick=()=>{$$(".tabs button").forEach(x=>x.classList.remove("active"));$$(".tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");$("#"+b.dataset.tab).classList.add("active")});
-$("#updateBtn").onclick=doUpdate;$("#refreshBtn").onclick=()=>{$("#clubInput").value=clubData.club.name;doUpdate()};$("#exportBtn").onclick=()=>location.href=`/api/club/${currentClub}/export.xlsx`;
+$("#loginBtn").onclick=login;$("#loginPass").onkeydown=e=>{if(e.key==="Enter")login()};$("#logoutBtn").onclick=logout;$("#adminBtn").onclick=adminUsers;$("#updateBtn").onclick=doUpdate;$("#refreshBtn").onclick=()=>{$("#clubInput").value=clubData.club.name;doUpdate()};$("#exportBtn").onclick=()=>location.href=`/api/club/${currentClub}/export.xlsx`;
 $("#matchLimit").onchange=loadMatches;$("#matchType").onchange=loadMatches;$("#rankingLast").onchange=loadRankings;$("#clubInput").onkeydown=e=>{if(e.key==="Enter")doUpdate()};
 loadClubs();
