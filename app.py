@@ -202,6 +202,15 @@ def clubs(request:Request):
     with conn() as c:
         if u["is_admin"]:return qall(c,"SELECT c.*,(SELECT COUNT(*) FROM matches m WHERE m.club_id=c.club_id) total_matches FROM clubs c ORDER BY updated_at DESC")
         return qall(c,"SELECT c.*,(SELECT COUNT(*) FROM matches m WHERE m.club_id=c.club_id) total_matches FROM clubs c JOIN user_clubs uc ON uc.club_id=c.club_id WHERE uc.user_id=%s ORDER BY c.updated_at DESC",(u["id"],))
+@app.delete("/api/clubs/{club_id}")
+def remove_club(request:Request,club_id:str):
+    u=require_user(request)
+    if u["is_admin"]: raise HTTPException(400,"O administrador não pode remover clubes pela lista global.")
+    with conn() as c:
+        linked=qone(c,"SELECT 1 FROM user_clubs WHERE user_id=%s AND club_id=%s",(u["id"],club_id))
+        if not linked: raise HTTPException(404,"Este clube não está nos seus clubes.")
+        execq(c,"DELETE FROM user_clubs WHERE user_id=%s AND club_id=%s",(u["id"],club_id))
+    return {"ok":True,"club_id":club_id}
 @app.post("/api/update")
 def update(request:Request,q:str=Query(min_length=2)):
     u=require_user(request)
