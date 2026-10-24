@@ -4,3 +4,4 @@ jinja2
 pandas
 openpyxl
 tzdata
+psycopg[binary]
