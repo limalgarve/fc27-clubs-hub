@@ -56,4 +56,4 @@ function closeModal(){$("#modal").classList.add("hidden")}
 $$(".tabs button").forEach(b=>b.onclick=()=>{$$(".tabs button").forEach(x=>x.classList.remove("active"));$$(".tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");$("#"+b.dataset.tab).classList.add("active")});
 $("#loginBtn").onclick=login;$("#loginPass").onkeydown=e=>{if(e.key==="Enter")login()};$("#logoutBtn").onclick=logout;$("#adminBtn").onclick=adminUsers;$("#updateBtn").onclick=doUpdate;$("#refreshBtn").onclick=()=>{$("#clubInput").value=clubData.club.name;doUpdate()};$("#exportBtn").onclick=()=>location.href=`/api/club/${currentClub}/export.xlsx`;
 $("#matchLimit").onchange=loadMatches;$("#matchType").onchange=loadMatches;$("#rankingLast").onchange=loadRankings;$("#clubInput").onkeydown=e=>{if(e.key==="Enter")doUpdate()};
-loadClubs();
+boot();
