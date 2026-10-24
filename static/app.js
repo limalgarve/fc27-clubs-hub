@@ -17,9 +17,13 @@ async function adminUsers(){let users=await api("/api/admin/users");$("#modalCon
 async function createUser(){try{await api("/api/admin/users",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:$("#newUser").value,password:$("#newPass").value})});toast("Usuário criado.");adminUsers()}catch(e){toast(e.message)}}
 async function loadClubs(){
  let clubs=await api("/api/clubs"); let box=$("#clubList");box.innerHTML="";
- clubs.forEach(c=>{let d=document.createElement("div");d.className="clubitem"+(currentClub===c.club_id?" active":"");d.innerHTML=`<b>${c.name}</b><small>${c.total_matches||0} partidas • ID ${c.club_id}</small>`;d.onclick=()=>openClub(c.club_id);box.appendChild(d)})
+ clubs.forEach(c=>{let d=document.createElement("div");d.className="clubitem"+(currentClub===c.club_id?" active":"");d.innerHTML="<div class=\"club-main\"><b>"+c.name+"</b><small>"+(c.total_matches||0)+" partidas • ID "+c.club_id+"</small></div>"+(me&&me.is_admin?"":"<button class=\"remove-club\" title=\"Remover dos meus clubes\">×</button>");d.onclick=()=>openClub(c.club_id);let b=d.querySelector(".remove-club");if(b)b.onclick=ev=>{ev.stopPropagation();removeClub(c.club_id)};box.appendChild(d)})
 }
-async function doUpdate(){
+async function removeClub(id){
+ if(!confirm("Remover este clube dos seus clubes?\n\nOs dados históricos não serão apagados."))return;
+ try{await api("/api/clubs/"+encodeURIComponent(id),{method:"DELETE"});if(String(currentClub)===String(id)){currentClub=null;clubData=null;$("#content").classList.add("hidden");$("#empty").classList.remove("hidden")}toast("Clube removido dos seus clubes.");await loadClubs()}
+ catch(e){toast("Erro: "+e.message)}
+}async function doUpdate(){
  let q=$("#clubInput").value.trim();if(!q)return toast("Digite o nome do clube.");
  $("#updateBtn").disabled=true;$("#updateBtn").textContent="ATUALIZANDO...";
  try{let r=await api("/api/update?q="+encodeURIComponent(q),{method:"POST"});toast(`${r.name}: ${r.new_matches} nova(s) partida(s). Total ${r.total_matches}.`);await boot();await openClub(r.club_id)}
